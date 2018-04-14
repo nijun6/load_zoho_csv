@@ -1,0 +1,4 @@
+load data infile 'E:\Prg\load_CSV\customer.csv'
+into table zoho_market_data
+fields terminated by ',' optionally enclosed by '"' escaped by '"'
+lines terminated by '\r\n';
