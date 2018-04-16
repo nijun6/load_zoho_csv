@@ -3,14 +3,20 @@ import MySQLdb
 from sys import argv
 db = MySQLdb.connect(host="sh-cdb-24esxjys.sql.tencentcdb.com", user="root", passwd="210000Nj", db="test", port=63669, charset="utf8")
 
-table_name = 'zoho_task_data'
-file_path = 'zoho_task_data.csv'
+table_name = 'zoho_market_data'
+file_path = 'zoho_market-4.16.csv'
 headers = []
 
 def printu(s):
-    print s.decode('utf-8').encode('gbk') 
+    if type(s) is not list:
+        print s.decode('utf-8').encode('gbk') 
+    else:
+        print 'list: ',
+        for e in s:
+            print e.decode('utf-8').encode('gbk') ,
+        print
 
-def is_duplicate(cols, cursor):
+def is_duplicate(cols, headers, cursor):
     sql = "select * from %s where %s = '%s' " %(table_name, headers[0], cols[0])
     printu("查重")
     print sql.decode('utf-8').encode('gbk') 
@@ -18,12 +24,13 @@ def is_duplicate(cols, cursor):
     results = cursor.fetchall()
     return len(results) > 0
     
-def update(cols, cursor):
+def update(cols, headers, cursor):
     printu("更新")
 #UPDATE `test`.`zoho_market_data` SET `价值`='高', `区`='888' WHERE `CUSTOMMODULE9 ID`='zcrm_105530000001792874';
     if len(cols) != len(headers):
-        print "列数不对"
-        print l.decode('utf-8').encode('gbk') 
+        print 'cols:', len(cols), 'headers:', len(headers)
+        printu("列数不对")
+        printu(cols)
         exit(0)
     ss = []
     for i in range(len(headers)):
@@ -62,21 +69,22 @@ def get_cols(l):
         if '"' in c:
             k = not k
         if not k:
-            cols.append(time_cvt(tc.replace('"', '')))
+            cols.append(time_cvt(tc.replace('"', '').replace("'", '')))
     if k:
         return []
     else:
         return cols
 
-print(time_cvt('2018-04-10 11:14 上午'))
+#print(time_cvt('2018-04-10 11:14 上午'))
 #exit(0)
-if __name__ == '__main__':
+def load_data():
     argv.append(file_path)
     if len(argv) == 1:
         print "too few arguments"
     else:
         ls = open(argv[1]).readlines()[1:]
         cursor = db.cursor()
+        cursor.execute("SET SQL_SAFE_UPDATES = 0;")
         
         headers =['`' + e + '`' for e in ls[0].strip().split(",")]
         insert_head = "insert into " + table_name + "(" + ','.join(headers) + ")"
@@ -90,15 +98,20 @@ if __name__ == '__main__':
                 print "数据格式错误", cols
                 continue
             cnt = cnt + 1
-            if not is_duplicate(cols, cursor):  
+            if not is_duplicate(cols, headers, cursor):  
                 printu("插入")
                 sql = insert_head + "values(" + ','.join(["''" if len(e) == 0 else '"' + e + '"' for e in cols]) + ")"
                 printu(sql)
                 cursor.execute(sql)
             else:
-                update(cols, cursor)
+                update(cols, headers, cursor)
             if cnt % 100 == 0:
                 db.commit()
+
+if __name__ == "__main__":
+    load_data()
+    #fill_related()
+printu("OKOKOKOK")
 db.commit()
 db.close()
 
