@@ -3,8 +3,8 @@ import MySQLdb
 from sys import argv
 db = MySQLdb.connect(host="sh-cdb-24esxjys.sql.tencentcdb.com", user="root", passwd="210000Nj", db="test", port=63669, charset="utf8")
 
-table_name = 'zoho_market_data'
-file_path = 'zoho_market-4.16.csv'
+table_name = 'zoho_task_data'
+file_path = '1524982035276.csv'
 headers = []
 
 def printu(s):
@@ -37,7 +37,7 @@ def update(cols, headers, cursor):
         ss.append(headers[i] + '=' + "'" + cols[i] + "'")
     
     sql = "update %s set %s where %s = '%s'" % (table_name, ", ".join(ss), headers[0], cols[0])
-    print sql.decode('utf-8').encode('gbk') 
+    print sql.decode('utf-8').encode('gbk')
     cursor.execute(sql)
 
 def time_cvt(s):
@@ -101,7 +101,10 @@ def load_data():
             if not is_duplicate(cols, headers, cursor):  
                 printu("插入")
                 sql = insert_head + "values(" + ','.join(["''" if len(e) == 0 else '"' + e + '"' for e in cols]) + ")"
-                printu(sql)
+                try:
+                    printu(sql)
+                except Exception, e:
+                    print e
                 cursor.execute(sql)
             else:
                 update(cols, headers, cursor)
