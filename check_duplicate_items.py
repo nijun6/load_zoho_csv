@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import MySQLdb
 from sys import argv
+import sys
 db = MySQLdb.connect(host="sh-cdb-24esxjys.sql.tencentcdb.com", user="root", passwd="210000Nj", db="test", port=63669, charset="utf8")
 
 table_name = 'zoho_market_data'
@@ -60,9 +61,10 @@ def search_contact_number(cursor, numbers):
 if __name__ == "__main__":
     if len(argv) == 2:
         ls = open(argv[1]).readlines()
-        for l in ls:
-            print "%s\t%s"%(l.strip(), True in [search_contact_number(db.cursor(), e) for e in get_numbers(l)] or 
-            True in [search_contact_number(db.cursor(), e[:4] + '-' + e[4:]) for e in get_numbers(l) if e.startswith('0') and '-' not in e and len(e) >= 6])
+        for i, l in enumerate(ls):
+            sys.stdout.flush()
+            print "%s\t%s\t%s"%(i, True in [search_contact_number(db.cursor(), e) for e in get_numbers(l)] or 
+            True in [search_contact_number(db.cursor(), e[:4] + '-' + e[4:]) for e in get_numbers(l) if e.startswith('0') and '-' not in e and len(e) >= 6], l.strip())
     else:
         cursor = db.cursor()
         cursor.execute("select `CUSTOMMODULE9 ID` from zoho_market_data")
